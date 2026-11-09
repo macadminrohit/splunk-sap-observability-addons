@@ -13,7 +13,8 @@ Both are **prototypes** built with the Splunk UCC framework. They pass AppInspec
 tags) and their unit tests, but the SAP-side calls have not all been verified against live tenants. Each README has a
 "Verification status" table that says exactly what was and was not tested.
 
-Build either one with `./build.sh` in its folder (see the Development section of each README). The built
-`.tar.gz` packages are not committed.
+Ready-to-install packages are in each add-on's `dist/` folder (`btp-usage-splunk-ta/dist/ta_sap_btp_uas-0.2.0.tar.gz`,
+`solace-splunk-ta/dist/ta_solace_semp-0.2.1.tar.gz`). To rebuild, run `./build.sh` in the add-on folder (see the Development
+section of each README; it needs the UCC framework 6.x and Python 3.12).
 
 **License:** none has been applied yet, so by default all rights are reserved. Add a `LICENSE` file before others reuse the code.
