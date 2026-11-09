@@ -1,0 +1,4 @@
+splunktaucclib
+splunk-sdk
+solnlib<8
+certifi

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "health",
+    "provider": "HM_ANALYTICS_DP",
+    "version": "v1",
+    "columns": {
+      "dimensions": [],
+      "metrics": [
+        {"measure": "value", "method": "avg"},
+        {"measure": "limit", "method": "avg"},
+        {"measure": "usage", "method": "avg"}
+      ]
+    }
+  },
+  {
+    "name": "jobs",
+    "provider": "DP_JOB_MONITORING",
+    "version": "v1",
+    "columns": {
+      "dimensions": [],
+      "metrics": [
+        {"measure": "executions", "method": "sum"},
+        {"measure": "success", "method": "sum"},
+        {"measure": "aborted", "method": "sum"},
+        {"measure": "applicationerror", "method": "sum"},
+        {"measure": "runtime", "method": "avg"}
+      ]
+    }
+  },
+  {
+    "name": "status_events",
+    "provider": "EVENTS_DATA_SET",
+    "version": "v1",
+    "columns": {
+      "dimensions": [],
+      "metrics": [
+        {"measure": "counter", "method": "sum"},
+        {"measure": "duration", "method": "avg"}
+      ]
+    }
+  }
+]

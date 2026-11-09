@@ -1,0 +1,667 @@
+{
+    "pages": {
+        "configuration": {
+            "tabs": [
+                {
+                    "name": "account",
+                    "title": "BTP usage accounts",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "label": "Name",
+                                "field": "name"
+                            },
+                            {
+                                "label": "Token URL",
+                                "field": "token_url"
+                            },
+                            {
+                                "label": "Reporting URL",
+                                "field": "reporting_url"
+                            },
+                            {
+                                "label": "Client ID",
+                                "field": "client_id"
+                            }
+                        ]
+                    },
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "Unique name for this BTP global account. Becomes the 'btp_account' field on every event.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Token URL",
+                            "field": "token_url",
+                            "help": "UAA base URL from the uas service key (scheme://host only, for example https://<subdomain>.authentication.<region>.hana.ondemand.com). '/oauth/token' is appended automatically. Check the field name against your own service key.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must be https://host[:port] with no path.",
+                                    "pattern": "^https://[A-Za-z0-9.\\-]+(:\\d{2,5})?/?$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Reporting URL",
+                            "field": "reporting_url",
+                            "help": "UAS reporting API base from the service key (scheme://host only, for example https://uas-reporting.cfapps.<region>.hana.ondemand.com). '/reports/v1/...' is appended automatically.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must be https://host[:port] with no path.",
+                                    "pattern": "^https://[A-Za-z0-9.\\-]+(:\\d{2,5})?/?$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Client ID",
+                            "field": "client_id",
+                            "help": "clientid from the uas service key (plan reporting-ga-admin).",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 500",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Client secret",
+                            "field": "client_secret",
+                            "encrypted": true,
+                            "help": "clientsecret from the uas service key. Stored encrypted in Splunk's credential store.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 1000",
+                                    "minLength": 1,
+                                    "maxLength": 1000
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "calm_account",
+                    "title": "Cloud ALM accounts",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "label": "Name",
+                                "field": "name"
+                            },
+                            {
+                                "label": "Token URL",
+                                "field": "token_url"
+                            },
+                            {
+                                "label": "API URL",
+                                "field": "api_url"
+                            },
+                            {
+                                "label": "Client ID",
+                                "field": "client_id"
+                            }
+                        ]
+                    },
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "Unique name for this Cloud ALM tenant. Becomes the 'calm_account' field on every event.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Token URL",
+                            "field": "token_url",
+                            "help": "UAA base URL from the Cloud ALM API service key (scheme://host only, e.g. https://<subdomain>.authentication.<region>.hana.ondemand.com). '/oauth/token' is appended automatically. Check the field name against your own service key.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must be https://host[:port] with no path.",
+                                    "pattern": "^https://[A-Za-z0-9.\\-]+(:\\d{2,5})?/?$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "API URL",
+                            "field": "api_url",
+                            "help": "Cloud ALM tenant host only, e.g. https://<tenant>.<region>.alm.cloud.sap. '/api/calm-analytics/v1/analytics/...' is appended automatically.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must be https://host[:port] with no path.",
+                                    "pattern": "^https://[A-Za-z0-9.\\-]+(:\\d{2,5})?/?$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Client ID",
+                            "field": "client_id",
+                            "help": "clientid from the Cloud ALM API service key.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 500",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Client secret",
+                            "field": "client_secret",
+                            "encrypted": true,
+                            "help": "clientsecret from the Cloud ALM API service key. Stored encrypted in Splunk's credential store. The service instance must have been created with read-only calm-api.* scopes.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 1000",
+                                    "minLength": 1,
+                                    "maxLength": 1000
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "loggingTab"
+                }
+            ],
+            "title": "Configuration",
+            "description": "Configure the SAP BTP global account to poll"
+        },
+        "inputs": {
+            "services": [
+                {
+                    "name": "sap_btp_uas",
+                    "title": "SAP BTP usage poller",
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "A unique name for the data input.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "interval",
+                            "label": "Interval",
+                            "field": "interval",
+                            "defaultValue": "86400",
+                            "options": {
+                                "range": [
+                                    3600,
+                                    86400
+                                ]
+                            },
+                            "help": "Polling interval in seconds. The API returns monthly figures, so daily (86400) is plenty.",
+                            "required": true
+                        },
+                        {
+                            "type": "index",
+                            "field": "index",
+                            "label": "Index"
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "BTP account",
+                            "field": "account",
+                            "options": {
+                                "referenceName": "account"
+                            },
+                            "help": "Account (from the Configuration tab) to poll.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "multipleSelect",
+                            "label": "Endpoints",
+                            "field": "endpoints",
+                            "defaultValue": "monthlyUsage,monthlySubaccountsCost",
+                            "help": "monthlySubaccountsCost only returns data for CPEA consumption-based contracts.",
+                            "required": true,
+                            "options": {
+                                "items": [
+                                    {
+                                        "value": "monthlyUsage",
+                                        "label": "Monthly usage (/monthlyUsage)"
+                                    },
+                                    {
+                                        "value": "monthlySubaccountsCost",
+                                        "label": "Monthly cost (/monthlySubaccountsCost)"
+                                    }
+                                ]
+                            },
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Choose from monthlyUsage, monthlySubaccountsCost",
+                                    "pattern": "^(monthlyUsage|monthlySubaccountsCost)(,(monthlyUsage|monthlySubaccountsCost))*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Months to fetch",
+                            "field": "months_back",
+                            "defaultValue": "2",
+                            "help": "Number of months ending with the current one (1 to 12). 2 re-reads the previous month so late corrections are picked up.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Enter a whole number from 1 to 12.",
+                                    "pattern": "^([1-9]|1[0-2])$"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "sap_calm_catalogue",
+                    "title": "Cloud ALM provider catalogue",
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "A unique name for the data input.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "interval",
+                            "label": "Interval",
+                            "field": "interval",
+                            "defaultValue": "86400",
+                            "options": {
+                                "range": [
+                                    3600,
+                                    604800
+                                ]
+                            },
+                            "help": "Seconds between catalogue refreshes. Daily is plenty; the catalogue rarely changes.",
+                            "required": true
+                        },
+                        {
+                            "type": "index",
+                            "field": "index",
+                            "label": "Index"
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Cloud ALM account",
+                            "field": "account",
+                            "options": {
+                                "referenceName": "calm_account"
+                            },
+                            "help": "Account (Configuration > Cloud ALM accounts) to poll.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "sap_calm_analytics",
+                    "title": "Cloud ALM analytics poller",
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "A unique name for the data input.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "interval",
+                            "label": "Interval",
+                            "field": "interval",
+                            "defaultValue": "900",
+                            "options": {
+                                "range": [
+                                    60,
+                                    86400
+                                ]
+                            },
+                            "help": "Seconds between polls. Rate limits are not documented in the API spec; start at 900 and measure.",
+                            "required": true
+                        },
+                        {
+                            "type": "index",
+                            "field": "index",
+                            "label": "Index"
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Cloud ALM account",
+                            "field": "account",
+                            "options": {
+                                "referenceName": "calm_account"
+                            },
+                            "help": "Account (Configuration > Cloud ALM accounts) to poll.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "textarea",
+                            "label": "Queries (JSON)",
+                            "field": "queries",
+                            "required": true,
+                            "help": "JSON array of Cloud ALM Query objects: [{\"name\":\"...\",\"provider\":\"...\",\"version\":\"v1\",\"columns\":{\"dimensions\":[...],\"metrics\":[{\"measure\":\"...\",\"method\":\"avg\"}]},\"filters\":[{\"key\":\"...\",\"values\":[\"...\"]}]}]. Get real provider, dimension and measure names from the sap:calm:provider and sap:calm:dimension events written by the catalogue input.",
+                            "options": {
+                                "rowsMax": 15,
+                                "rowsMin": 6
+                            },
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 2 and 8192",
+                                    "minLength": 2,
+                                    "maxLength": 8192
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Time range",
+                            "field": "time_range",
+                            "defaultValue": "L1H",
+                            "required": true,
+                            "help": "Semantic period: L or C (last/current) + number + H, D, W, M or Y. Example L1H = last 1 hour.",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Use e.g. L1H, L7D, C1M.",
+                                    "pattern": "^[LC][0-9]{1,3}[HDWMY]$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Format",
+                            "field": "format",
+                            "defaultValue": "table",
+                            "required": true,
+                            "options": {
+                                "disableSearch": true,
+                                "items": [
+                                    {
+                                        "value": "table",
+                                        "label": "table"
+                                    },
+                                    {
+                                        "value": "timeseries",
+                                        "label": "timeseries"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Table type",
+                            "field": "table_type",
+                            "defaultValue": "last",
+                            "required": true,
+                            "help": "snapshot = aggregated, no timestamps; raw = every row with timestamps (re-reads overlap between polls); last = latest values with timestamps. Table format only.",
+                            "options": {
+                                "disableSearch": true,
+                                "items": [
+                                    {
+                                        "value": "snapshot",
+                                        "label": "snapshot"
+                                    },
+                                    {
+                                        "value": "raw",
+                                        "label": "raw"
+                                    },
+                                    {
+                                        "value": "last",
+                                        "label": "last"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "label": "Resolution",
+                            "field": "resolution",
+                            "required": false,
+                            "help": "Optional. R raw, P one point per period, Mi minutes, H, D, W, M, Y. Blank = API default (D).",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Use R, P, H, D, W, M, Y or an Mi value such as 5Mi.",
+                                    "pattern": "^([RPHDWMY]|[0-9]{1,4}Mi)?$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Page size",
+                            "field": "page_size",
+                            "defaultValue": "500",
+                            "required": true,
+                            "help": "Rows per request (table format). The maximum the API accepts is not documented.",
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Whole number 1 to 5000.",
+                                    "pattern": "^([1-9][0-9]{0,3}|5000)$"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "title": "Inputs",
+            "description": "Manage SAP BTP usage pollers",
+            "table": {
+                "actions": [
+                    "edit",
+                    "delete",
+                    "clone"
+                ],
+                "header": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "BTP account",
+                        "field": "account"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled"
+                    }
+                ],
+                "moreInfo": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "BTP account",
+                        "field": "account"
+                    },
+                    {
+                        "label": "Endpoints",
+                        "field": "endpoints"
+                    },
+                    {
+                        "label": "Months to fetch",
+                        "field": "months_back"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Time range",
+                        "field": "time_range"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled",
+                        "mapping": {
+                            "true": "Inactive",
+                            "false": "Active"
+                        }
+                    }
+                ]
+            }
+        },
+        "dashboard": {
+            "panels": [
+                {
+                    "name": "default"
+                }
+            ]
+        }
+    },
+    "meta": {
+        "name": "ta_sap_btp_uas",
+        "restRoot": "ta_sap_btp_uas",
+        "version": "0.2.0",
+        "displayName": "SAP BTP Usage Add-on",
+        "schemaVersion": "0.0.10",
+        "supportedThemes": [
+            "light",
+            "dark"
+        ],
+        "supportedPythonVersion": [
+            "3.9",
+            "3.13"
+        ]
+    }
+}

@@ -1,0 +1,1 @@
+Proof-of-concept code. No open-source licence has been applied; all rights reserved by the author until one is chosen.

@@ -1,0 +1,377 @@
+{
+    "pages": {
+        "configuration": {
+            "tabs": [
+                {
+                    "name": "account",
+                    "title": "Solace brokers",
+                    "table": {
+                        "actions": [
+                            "edit",
+                            "delete",
+                            "clone"
+                        ],
+                        "header": [
+                            {
+                                "label": "Name",
+                                "field": "name"
+                            },
+                            {
+                                "label": "SEMP URL",
+                                "field": "semp_url"
+                            },
+                            {
+                                "label": "Username",
+                                "field": "username"
+                            }
+                        ]
+                    },
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "Unique name for this broker / service. Becomes the 'broker' field on every event.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "SEMP URL",
+                            "field": "semp_url",
+                            "help": "HTTPS management endpoint, scheme://host:port only (for example https://mr-connection-xxxx.messaging.solace.cloud:943). TLS certificate verification is always enforced.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must be https://host[:port] with no path.",
+                                    "pattern": "^https://[A-Za-z0-9.\\-]+(:\\d{2,5})?/?$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Username",
+                            "field": "username",
+                            "help": "Read-only SEMP user. For Solace Cloud / SAP AEM use the service's '-view' (read-only) user.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 200",
+                                    "minLength": 1,
+                                    "maxLength": 200
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Password",
+                            "field": "password",
+                            "encrypted": true,
+                            "help": "Stored encrypted in Splunk's credential store.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 500",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "loggingTab"
+                }
+            ],
+            "title": "Configuration",
+            "description": "Configure Solace brokers to poll"
+        },
+        "inputs": {
+            "services": [
+                {
+                    "name": "solace_semp",
+                    "title": "Solace SEMP poller",
+                    "entity": [
+                        {
+                            "type": "text",
+                            "label": "Name",
+                            "field": "name",
+                            "help": "A unique name for the data input.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Must begin with a letter and contain only letters, digits and underscores.",
+                                    "pattern": "^[a-zA-Z]\\w*$"
+                                },
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "interval",
+                            "label": "Interval",
+                            "field": "interval",
+                            "defaultValue": "60",
+                            "options": {
+                                "range": [
+                                    30,
+                                    3600
+                                ]
+                            },
+                            "help": "Polling interval in seconds. Dynatrace polls about every minute; very large VPNs should poll less often.",
+                            "required": true
+                        },
+                        {
+                            "type": "index",
+                            "field": "index",
+                            "label": "Index"
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Broker",
+                            "field": "account",
+                            "options": {
+                                "referenceName": "account"
+                            },
+                            "help": "Broker (from the Configuration tab) to poll.",
+                            "required": true,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Length must be between 1 and 100",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                }
+                            ]
+                        },
+                        {
+                            "type": "multipleSelect",
+                            "label": "Object types",
+                            "field": "object_types",
+                            "defaultValue": "msgVpn,queue",
+                            "help": "What to collect. Queues, topic endpoints and clients are the highest-volume; 'System' uses SEMP v1 (XML) for broker-level health.",
+                            "required": true,
+                            "options": {
+                                "items": [
+                                    {
+                                        "value": "msgVpn",
+                                        "label": "Message VPNs"
+                                    },
+                                    {
+                                        "value": "queue",
+                                        "label": "Queues"
+                                    },
+                                    {
+                                        "value": "topicEndpoint",
+                                        "label": "Topic endpoints"
+                                    },
+                                    {
+                                        "value": "bridge",
+                                        "label": "Bridges"
+                                    },
+                                    {
+                                        "value": "bridgeRemoteVpn",
+                                        "label": "Bridge remote VPN state"
+                                    },
+                                    {
+                                        "value": "restDeliveryPoint",
+                                        "label": "REST delivery points"
+                                    },
+                                    {
+                                        "value": "restConsumer",
+                                        "label": "REST consumers"
+                                    },
+                                    {
+                                        "value": "client",
+                                        "label": "Clients (capped)"
+                                    },
+                                    {
+                                        "value": "system",
+                                        "label": "System health (SEMP v1: HA, spool, memory, interfaces, services, certificate)"
+                                    }
+                                ]
+                            },
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Choose from msgVpn, queue, topicEndpoint, bridge, bridgeRemoteVpn, restDeliveryPoint, restConsumer, client, system",
+                                    "pattern": "^(msgVpn|queue|topicEndpoint|bridge|bridgeRemoteVpn|restDeliveryPoint|restConsumer|client|system)(,(msgVpn|queue|topicEndpoint|bridge|bridgeRemoteVpn|restDeliveryPoint|restConsumer|client|system))*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Max items per VPN and type",
+                            "field": "max_items",
+                            "defaultValue": "500",
+                            "help": "Cap on events per message VPN and object type per poll (0 = unlimited). Truncation is logged. Mainly protects against very large client lists.",
+                            "required": false,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Whole number 0-100000",
+                                    "pattern": "^([0-9]{1,5}|100000)$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "checkbox",
+                            "label": "Trim config-only fields",
+                            "field": "trim_config_fields",
+                            "defaultValue": 1,
+                            "help": "Drop static configuration attributes (authentication*, authorization*, event*Threshold*, TLS validation settings), duplicated counter.*/rate.* keys and empty values. Telemetry is kept."
+                        },
+                        {
+                            "type": "text",
+                            "label": "Message VPN filter",
+                            "field": "msg_vpn_filter",
+                            "defaultValue": "*",
+                            "help": "Comma-separated names or wildcards (e.g. prod-*,shared). Applied client-side.",
+                            "required": false,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Max 500 characters",
+                                    "minLength": 0,
+                                    "maxLength": 500
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Queue / endpoint / bridge name filter",
+                            "field": "name_filter",
+                            "defaultValue": "*",
+                            "help": "Comma-separated names or wildcards. Use this to cap event volume on busy brokers.",
+                            "required": false,
+                            "validators": [
+                                {
+                                    "type": "string",
+                                    "errorMsg": "Max 500 characters",
+                                    "minLength": 0,
+                                    "maxLength": 500
+                                }
+                            ]
+                        }
+                    ],
+                    "inputHelperModule": "solace_semp_helper"
+                }
+            ],
+            "title": "Inputs",
+            "description": "Manage Solace SEMP pollers",
+            "table": {
+                "actions": [
+                    "edit",
+                    "delete",
+                    "clone"
+                ],
+                "header": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "Broker",
+                        "field": "account"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled"
+                    }
+                ],
+                "moreInfo": [
+                    {
+                        "label": "Name",
+                        "field": "name"
+                    },
+                    {
+                        "label": "Broker",
+                        "field": "account"
+                    },
+                    {
+                        "label": "Object types",
+                        "field": "object_types"
+                    },
+                    {
+                        "label": "VPN filter",
+                        "field": "msg_vpn_filter"
+                    },
+                    {
+                        "label": "Max items",
+                        "field": "max_items"
+                    },
+                    {
+                        "label": "Name filter",
+                        "field": "name_filter"
+                    },
+                    {
+                        "label": "Interval",
+                        "field": "interval"
+                    },
+                    {
+                        "label": "Index",
+                        "field": "index"
+                    },
+                    {
+                        "label": "Status",
+                        "field": "disabled",
+                        "mapping": {
+                            "true": "Inactive",
+                            "false": "Active"
+                        }
+                    }
+                ]
+            }
+        },
+        "dashboard": {
+            "panels": [
+                {
+                    "name": "default"
+                }
+            ]
+        }
+    },
+    "meta": {
+        "name": "ta_solace_semp",
+        "restRoot": "ta_solace_semp",
+        "version": "0.2.1",
+        "displayName": "Solace SEMP Add-on",
+        "schemaVersion": "0.0.10",
+        "supportedThemes": [
+            "light",
+            "dark"
+        ],
+        "supportedPythonVersion": [
+            "3.9",
+            "3.13"
+        ]
+    }
+}
