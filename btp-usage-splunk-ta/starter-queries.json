@@ -4,11 +4,14 @@
     "provider": "HM_ANALYTICS_DP",
     "version": "v1",
     "columns": {
-      "dimensions": [],
+      "dimensions": ["serviceName", "serviceType", "metricName"],
       "metrics": [
         {"measure": "value", "method": "avg"},
         {"measure": "limit", "method": "avg"},
-        {"measure": "usage", "method": "avg"}
+        {"measure": "usage", "method": "avg"},
+        {"measure": "okStatus", "method": "avg"},
+        {"measure": "warningStatus", "method": "avg"},
+        {"measure": "criticalStatus", "method": "avg"}
       ]
     }
   },
@@ -17,13 +20,15 @@
     "provider": "DP_JOB_MONITORING",
     "version": "v1",
     "columns": {
-      "dimensions": [],
+      "dimensions": ["serviceName", "jobName"],
       "metrics": [
         {"measure": "executions", "method": "sum"},
         {"measure": "success", "method": "sum"},
+        {"measure": "warning", "method": "sum"},
         {"measure": "aborted", "method": "sum"},
-        {"measure": "applicationerror", "method": "sum"},
-        {"measure": "runtime", "method": "avg"}
+        {"measure": "applicationWarning", "method": "sum"},
+        {"measure": "applicationError", "method": "sum"},
+        {"measure": "averageRunTime", "method": "avg"}
       ]
     }
   },
@@ -32,10 +37,10 @@
     "provider": "EVENTS_DATA_SET",
     "version": "v1",
     "columns": {
-      "dimensions": [],
+      "dimensions": ["serviceName", "eventType", "eventStatus"],
       "metrics": [
         {"measure": "counter", "method": "sum"},
-        {"measure": "duration", "method": "avg"}
+        {"measure": "duration", "method": "sum"}
       ]
     }
   }

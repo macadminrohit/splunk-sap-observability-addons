@@ -29,6 +29,7 @@ ST_DIMENSION = "sap:calm:dimension"
 ST_DATA = "sap:calm:analytics"
 
 MAX_PAGES = 20
+MAX_ENUM_VALUES = 50
 FORMATS = ("table", "timeseries")
 TABLE_TYPES = ("snapshot", "raw", "last")
 
@@ -128,8 +129,13 @@ def collect_catalogue(client, account, include_dimensions=True, logger=None):
         for d in dims:
             if not isinstance(d, dict):
                 continue
-            ev = {k: v for k, v in d.items() if k != "values"}  # values can be large
-            ev["value_count"] = len(d.get("values") or [])
+            vals = d.get("values") or []
+            ev = {k: v for k, v in d.items() if k != "values"}
+            ev["value_count"] = len(vals)
+            # Keep small enumerations (measure names, statuses, types). Large
+            # lists such as service IDs are summarised by value_count only.
+            if 0 < len(vals) <= MAX_ENUM_VALUES:
+                ev["values"] = vals
             ev["calm_provider"] = p["name"]
             ev["calm_provider_version"] = version
             ev["calm_account"] = account

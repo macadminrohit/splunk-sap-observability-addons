@@ -503,7 +503,6 @@
                             "defaultValue": "table",
                             "required": true,
                             "options": {
-                                "disableSearch": true,
                                 "items": [
                                     {
                                         "value": "table",
@@ -524,7 +523,6 @@
                             "required": true,
                             "help": "snapshot = aggregated, no timestamps; raw = every row with timestamps (re-reads overlap between polls); last = latest values with timestamps. Table format only.",
                             "options": {
-                                "disableSearch": true,
                                 "items": [
                                     {
                                         "value": "snapshot",
@@ -655,7 +653,7 @@
     "meta": {
         "name": "ta_sap_btp_uas",
         "restRoot": "ta_sap_btp_uas",
-        "version": "0.2.1",
+        "version": "0.2.2",
         "displayName": "SAP BTP Usage Add-on",
         "schemaVersion": "0.0.10",
         "supportedThemes": [

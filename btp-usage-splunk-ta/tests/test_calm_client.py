@@ -75,7 +75,16 @@ class CalmTests(unittest.TestCase):
         self.assertTrue(all(p["calm_account"] == "acct" for p in prov))
         self.assertEqual(len(dims), 1)
         self.assertEqual(dims[0]["value_count"], 2)
-        self.assertNotIn("values", dims[0])               # large value lists are not indexed
+        self.assertEqual(len(dims[0]["values"]), 2)       # small enumerations are kept
+        big = type("C", (), {
+            "list_providers": lambda s: [{"name": "P", "version": ["v1"]}],
+            "provider_dimensions": lambda s, n, v=None: [
+                {"name": "svc", "values": list(range(calm_client.MAX_ENUM_VALUES + 1))}],
+        })()
+        evs2 = calm_client.collect_catalogue(big, "acct")
+        d2 = [e for st, e in evs2 if st == calm_client.ST_DIMENSION][0]
+        self.assertNotIn("values", d2)                    # large lists only counted
+        self.assertEqual(d2["value_count"], calm_client.MAX_ENUM_VALUES + 1)
         self.assertEqual(dims[0]["calm_provider_version"], "v2")   # latest version used
         self.assertEqual(dims[0]["calm_provider"], "MOCK_HEALTH")
 
