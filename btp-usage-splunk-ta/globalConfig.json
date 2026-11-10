@@ -334,7 +334,8 @@
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "inputHelperModule": "sap_btp_uas_helper"
                 },
                 {
                     "name": "sap_calm_catalogue",
@@ -397,7 +398,8 @@
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "inputHelperModule": "sap_calm_catalogue_helper"
                 },
                 {
                     "name": "sap_calm_analytics",
@@ -568,7 +570,8 @@
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    "inputHelperModule": "sap_calm_analytics_helper"
                 }
             ],
             "title": "Inputs",
@@ -652,7 +655,7 @@
     "meta": {
         "name": "ta_sap_btp_uas",
         "restRoot": "ta_sap_btp_uas",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "displayName": "SAP BTP Usage Add-on",
         "schemaVersion": "0.0.10",
         "supportedThemes": [

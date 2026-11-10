@@ -238,7 +238,7 @@ Add-on logs: `index=_internal source=*ta_sap_btp_uas*`. Set the level on **Confi
 |---|---|
 | Usage API paths and field names | **Verified against SAP's OpenAPI spec** (`APIUasReportingService.json`, Resource Consumption 1.0) |
 | Cloud ALM Analytics paths and request/response shapes | **Verified against SAP's OpenAPI spec** (`CALM_ANALYTICS.json`, 1.0.0) |
-| Client logic: token request, windows, query params, paging, error handling, URL validation, TLS and redirect refusal, no secret in errors | **Verified** by 27 unit tests against mock HTTPS servers (`tests/`). The mocks' provider names and values are **invented**. |
+| Client logic: token request, windows, query params, paging, error handling, URL validation, TLS and redirect refusal, no secret in errors | **Verified** by 31 unit tests against mock HTTPS servers (`tests/`), including end-to-end runs of the three built entrypoints. The mocks' provider names and values are **invented**. |
 | UCC build and AppInspect (`cloud` + `private_victoria`) | **Verified locally**: 0 failures, 0 errors |
 | Running inside a real Splunk (credential decrypt, forms, scheduling) | **Not verified** |
 | Against a real SAP tenant (service-key field names, paging, rate limits, provider and measure names, timestamp unit, page-size cap) | **Not verified** |
@@ -260,7 +260,7 @@ Add-on logs: `index=_internal source=*ta_sap_btp_uas*`. Set the level on **Confi
 python3 -m venv .venv && . .venv/bin/activate
 pip install splunk-add-on-ucc-framework splunk-appinspect
 python -m unittest discover -s tests -v     # needs openssl on PATH; no Splunk required
-VERSION=0.2.0 ./build.sh                    # build, package and AppInspect-vet (macOS: export DYLD_LIBRARY_PATH=/opt/homebrew/lib)
+VERSION=0.2.1 ./build.sh                    # build, package and AppInspect-vet (macOS: export DYLD_LIBRARY_PATH=/opt/homebrew/lib)
 ```
 
 `build.sh` writes to a temp directory, normalises file modes (some synced folders report every file as executable,

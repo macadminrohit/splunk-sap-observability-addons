@@ -10,7 +10,7 @@
 # as rwx------, which AppInspect rejects (check_for_bin_files), so modes are normalised here.
 set -euo pipefail
 cd "$(dirname "$0")"
-VERSION="${VERSION:-0.2.0}"
+VERSION="${VERSION:-0.2.1}"
 OUT="${OUT:-${TMPDIR:-/tmp}/ta-btp-uas-out}"
 
 find package -name __pycache__ -prune -exec rm -rf {} + || true   # test runs leave .pyc files; AppInspect rejects them
