@@ -63,18 +63,26 @@ def stream_events(inputs: smi.InputDefinition, event_writer: smi.EventWriter):
                 if e.strip()
             ]
             months_back = int(input_item.get("months_back") or 2)
+            subaccount_ids = [
+                s.strip() for s in (input_item.get("subaccount_ids") or "").split(",") if s.strip()
+            ]
             events = uas_client.collect(
                 client,
                 account=account_name,
                 endpoints=endpoints,
                 months_back=months_back,
                 logger=logger,
+                credits_view_phases=input_item.get("credits_view_phases") or "CURRENT",
+                subaccount_ids=subaccount_ids,
+                subaccount_period=input_item.get("subaccount_period") or "DAY",
+                days_back=int(input_item.get("days_back") or 3),
             )
             index = input_item.get("index")
             for sourcetype, event in events:
                 event_writer.write_event(
                     smi.Event(
                         data=json.dumps(event, ensure_ascii=False, default=str),
+                        time=uas_client.event_time(sourcetype, event),
                         index=index,
                         host=client.host,
                         sourcetype=sourcetype,

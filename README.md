@@ -13,8 +13,9 @@ Both are **prototypes** built with the Splunk UCC framework. They pass AppInspec
 tags) and their unit tests, but the SAP-side calls have not all been verified against live tenants. Each README has a
 "Verification status" table that says exactly what was and was not tested.
 
-Ready-to-install packages are in each add-on's `dist/` folder (`btp-usage-splunk-ta/dist/ta_sap_btp_uas-0.2.1.tar.gz`,
-`solace-splunk-ta/dist/ta_solace_semp-0.2.1.tar.gz`). To rebuild, run `./build.sh` in the add-on folder (see the Development
+Ready-to-install packages: the SAP BTP Usage + Cloud ALM add-on from 0.3.0 onwards is attached to
+[Releases](https://github.com/macadminrohit/splunk-sap-observability-addons/releases) (older versions are in its `dist/` folder);
+the Solace add-on is in `solace-splunk-ta/dist/`. To rebuild, run `./build.sh` in the add-on folder (see the Development
 section of each README; it needs the UCC framework 6.x and Python 3.12).
 
 **License:** none has been applied yet, so by default all rights are reserved. Add a `LICENSE` file before others reuse the code.

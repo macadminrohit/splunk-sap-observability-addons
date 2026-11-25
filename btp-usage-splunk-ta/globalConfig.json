@@ -297,25 +297,37 @@
                             "label": "Endpoints",
                             "field": "endpoints",
                             "defaultValue": "monthlyUsage,monthlySubaccountsCost",
-                            "help": "monthlySubaccountsCost only returns data for CPEA consumption-based contracts.",
+                            "help": "monthlySubaccountsCost and cloudCreditsDetails only return data for consumption-based (CPEA/BTPEA) contracts. monthlyDirectoryUsage needs an account whose service key was created in a directory (Directory_Admin); with a global-account key it is skipped with a log line.",
                             "required": true,
                             "options": {
                                 "items": [
                                     {
                                         "value": "monthlyUsage",
-                                        "label": "Monthly usage (/monthlyUsage)"
+                                        "label": "Monthly usage, global account (/monthlyUsage)"
                                     },
                                     {
                                         "value": "monthlySubaccountsCost",
-                                        "label": "Monthly cost (/monthlySubaccountsCost)"
+                                        "label": "Monthly cost per subaccount (/monthlySubaccountsCost)"
+                                    },
+                                    {
+                                        "value": "cloudCreditsDetails",
+                                        "label": "Cloud credit balance (/cloudCreditsDetails)"
+                                    },
+                                    {
+                                        "value": "subaccountUsage",
+                                        "label": "Usage per subaccount by day, week or month (/subaccountUsage)"
+                                    },
+                                    {
+                                        "value": "monthlyDirectoryUsage",
+                                        "label": "Monthly usage, one directory (/monthlyDirectoryUsage)"
                                     }
                                 ]
                             },
                             "validators": [
                                 {
                                     "type": "regex",
-                                    "errorMsg": "Choose from monthlyUsage, monthlySubaccountsCost",
-                                    "pattern": "^(monthlyUsage|monthlySubaccountsCost)(,(monthlyUsage|monthlySubaccountsCost))*$"
+                                    "errorMsg": "Choose from monthlyUsage, monthlySubaccountsCost, monthlyDirectoryUsage, cloudCreditsDetails, subaccountUsage",
+                                    "pattern": "^(monthlyUsage|monthlySubaccountsCost|monthlyDirectoryUsage|cloudCreditsDetails|subaccountUsage)(,(monthlyUsage|monthlySubaccountsCost|monthlyDirectoryUsage|cloudCreditsDetails|subaccountUsage))*$"
                                 }
                             ]
                         },
@@ -324,13 +336,102 @@
                             "label": "Months to fetch",
                             "field": "months_back",
                             "defaultValue": "2",
-                            "help": "Number of months ending with the current one (1 to 12). 2 re-reads the previous month so late corrections are picked up.",
+                            "help": "Used by the monthly reports. Number of months ending with the current one (1 to 12). 2 re-reads the previous month so late corrections are picked up.",
                             "required": true,
                             "validators": [
                                 {
                                     "type": "regex",
                                     "errorMsg": "Enter a whole number from 1 to 12.",
                                     "pattern": "^([1-9]|1[0-2])$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Cloud credit history",
+                            "field": "credits_view_phases",
+                            "defaultValue": "CURRENT",
+                            "help": "Used by cloudCreditsDetails. CURRENT returns the current contract phase; ALL returns every phase.",
+                            "required": false,
+                            "options": {
+                                "disableSearch": true,
+                                "autoCompleteFields": [
+                                    {
+                                        "value": "CURRENT",
+                                        "label": "Current phase"
+                                    },
+                                    {
+                                        "value": "ALL",
+                                        "label": "All phases"
+                                    }
+                                ]
+                            },
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Choose CURRENT or ALL.",
+                                    "pattern": "^(CURRENT|ALL)$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Subaccount IDs",
+                            "field": "subaccount_ids",
+                            "help": "Used by subaccountUsage. Comma-separated subaccount GUIDs. Leave empty to poll every subaccount that appears in monthlyUsage.",
+                            "required": false,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Enter subaccount GUIDs separated by commas.",
+                                    "pattern": "^$|^[0-9a-fA-F-]{8,64}(\\s*,\\s*[0-9a-fA-F-]{8,64})*$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "singleSelect",
+                            "label": "Subaccount usage granularity",
+                            "field": "subaccount_period",
+                            "defaultValue": "DAY",
+                            "help": "Used by subaccountUsage. SAP allows at most 4 months of DAY data and 1 year of WEEK data per call.",
+                            "required": false,
+                            "options": {
+                                "disableSearch": true,
+                                "autoCompleteFields": [
+                                    {
+                                        "value": "DAY",
+                                        "label": "Day"
+                                    },
+                                    {
+                                        "value": "WEEK",
+                                        "label": "Week"
+                                    },
+                                    {
+                                        "value": "MONTH",
+                                        "label": "Month"
+                                    }
+                                ]
+                            },
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Choose DAY, WEEK or MONTH.",
+                                    "pattern": "^(DAY|WEEK|MONTH)$"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "text",
+                            "label": "Days to fetch (subaccount usage)",
+                            "field": "days_back",
+                            "defaultValue": "3",
+                            "help": "Used by subaccountUsage. Days ending today (1 to 366). Keep it short for a daily interval: each poll re-reads the whole window, so 3 picks up late corrections without re-indexing weeks of data.",
+                            "required": false,
+                            "validators": [
+                                {
+                                    "type": "regex",
+                                    "errorMsg": "Enter a whole number from 1 to 366.",
+                                    "pattern": "^([1-9]|[1-9][0-9]|[12][0-9][0-9]|3[0-5][0-9]|36[0-6])$"
                                 }
                             ]
                         }
@@ -653,7 +754,7 @@
     "meta": {
         "name": "ta_sap_btp_uas",
         "restRoot": "ta_sap_btp_uas",
-        "version": "0.2.2",
+        "version": "0.3.0",
         "displayName": "SAP BTP Usage Add-on",
         "schemaVersion": "0.0.10",
         "supportedThemes": [

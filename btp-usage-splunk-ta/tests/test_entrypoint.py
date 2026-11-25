@@ -113,6 +113,23 @@ class EntrypointTests(unittest.TestCase):
         self.assertEqual(len(out), 3)  # 2 usage records + 1 cost record
         self.assertNotIn(self.csecret, "".join(e.data for e in out))
 
+    def test_usage_input_new_reports(self):
+        out = self._run("sap_btp_uas_helper", "sap_btp_uas_helper", self.uas_port,
+                        {"sap_btp_uas://t": {"account": "ga", "index": "sap_btp",
+                                             "endpoints": "cloudCreditsDetails,subaccountUsage",
+                                             "months_back": "2", "credits_view_phases": "CURRENT",
+                                             "subaccount_ids": "sa-1, sa-2", "subaccount_period": "DAY",
+                                             "days_back": "3"}})
+        by_st = {}
+        for e in out:
+            by_st.setdefault(e.sourceType, []).append(e)
+        self.assertEqual({k: len(v) for k, v in by_st.items()},
+                         {"sap:btp:uas:cloudcredits": 3, "sap:btp:uas:subaccountusage": 3})
+        self.assertTrue(all(e.time is None for e in by_st["sap:btp:uas:cloudcredits"]))
+        self.assertEqual(sorted(e.time for e in by_st["sap:btp:uas:subaccountusage"]),
+                         [1793145600.0, 1793232000.0, 1793232000.0])  # 2026-10-28 and -29 UTC
+        self.assertNotIn(self.csecret, "".join(e.data for e in out))
+
 
 if __name__ == "__main__":
     unittest.main()

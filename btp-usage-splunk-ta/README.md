@@ -29,7 +29,7 @@ Splunk index ──Log Observer Connect──▶ Splunk Observability Cloud (SPL
 
 | Input | What it does | Sourcetype(s) |
 |---|---|---|
-| `sap_btp_uas` | Polls `GET /reports/v1/monthlyUsage` and `GET /reports/v1/monthlySubaccountsCost`. Default interval daily. | `sap:btp:uas:monthlyusage`, `sap:btp:uas:monthlycost` |
+| `sap_btp_uas` | Polls any of the five Usage Data Management reports under `/reports/v1`: `monthlyUsage`, `monthlySubaccountsCost`, `cloudCreditsDetails`, `subaccountUsage`, `monthlyDirectoryUsage`. Default interval daily. | `sap:btp:uas:monthlyusage`, `sap:btp:uas:monthlycost`, `sap:btp:uas:cloudcredits`, `sap:btp:uas:subaccountusage`, `sap:btp:uas:monthlydirectoryusage` |
 | `sap_calm_catalogue` | Lists Cloud ALM data providers (`GET /analytics/providers`) and each provider's dimensions (`POST /analytics/providers/filters`). Run it first to learn the real provider, dimension and measure names. | `sap:calm:provider`, `sap:calm:dimension` |
 | `sap_calm_analytics` | Runs the queries you configure against `POST /analytics/providers/data`. | `sap:calm:analytics` |
 
@@ -48,7 +48,8 @@ Fields added to every event: `btp_account` and `uas_endpoint` (usage), `calm_acc
 
 ## Install
 
-1. Download `dist/ta_sap_btp_uas-<version>.tar.gz` (or build it, see [Development](#development)).
+1. Download `ta_sap_btp_uas-<version>.tar.gz` from the repository's
+   [Releases](https://github.com/macadminrohit/splunk-sap-observability-addons/releases) (or build it, see [Development](#development)).
 2. **Apps > Manage Apps > Install app from file**, or `acs apps install private --acs-legal-ack Y --app-package <file>`.
    Splunk vets the package and asks for your splunk.com credentials.
 3. Create an index, for example `sap_btp` (Settings > Indexes). For Log Observer Connect, make sure the service
@@ -70,6 +71,10 @@ Client secrets are stored encrypted in Splunk's credential store, never in `inpu
    Service*, plan *reporting-ga-admin*.
 3. Create a **service key** on the instance and copy these values (names can differ slightly between landscapes,
    so check them against your own key): `clientid`, `clientsecret`, the UAA URL, and `target_url`.
+4. Only for `monthlyDirectoryUsage`: that report needs the scope `Directory_Admin`, which a `reporting-ga-admin` key
+   does not carry. Create a separate key in the context of the directory (the directory must contain subaccounts and
+   have user management enabled), and add it as its own account in Splunk. `monthlyUsage` already returns
+   `directoryId` and `directoryName` on every record, so you only need this when directories have separate administrators.
 
 **In Splunk:**
 
@@ -90,10 +95,22 @@ Client secrets are stored encrypted in Splunk's credential store, never in `inpu
    | Interval | Seconds. Default `86400` (the API returns monthly figures). Range 3600 to 86400. |
    | Index | For example `sap_btp`. |
    | BTP account | The account created above. |
-   | Endpoints | `monthlyUsage` and/or `monthlySubaccountsCost`. The cost endpoint only returns data for **CPEA consumption-based** contracts; on other contracts it returns 404 and is skipped with a log line. |
-   | Months to fetch | `2` (previous plus current month, so late corrections are picked up). Range 1 to 12. |
+   | Endpoints | Any of the five reports below. `monthlySubaccountsCost` and `cloudCreditsDetails` only return data for **consumption-based (CPEA/BTPEA)** contracts; on other contracts they return 404 and are skipped with a log line. |
+   | Months to fetch | Monthly reports only. `2` (previous plus current month, so late corrections are picked up). Range 1 to 12. |
+   | Cloud credit history | `cloudCreditsDetails` only. `CURRENT` (default) for the current contract phase, `ALL` for every phase. |
+   | Subaccount IDs | `subaccountUsage` only. Comma-separated subaccount GUIDs. Leave empty to poll every subaccount that appears in this poll's `monthlyUsage` (fetched for discovery even when `monthlyUsage` is not selected). |
+   | Subaccount usage granularity | `subaccountUsage` only. `DAY` (default), `WEEK` or `MONTH`. |
+   | Days to fetch (subaccount usage) | `subaccountUsage` only. Days ending today, default `3`. SAP allows at most 4 months of `DAY` and 1 year of `WEEK` data per call; longer windows are cut to that limit with a log line. |
 
-Every poll rewrites the same month, so in searches use `latest()` per key, **never `sum()` across polls**.
+   | Report | One event per | Notes |
+   |---|---|---|
+   | `monthlyUsage` | subaccount, service, plan, metric and month | Global account view. |
+   | `monthlySubaccountsCost` | subaccount, service, metric and month, with `cost`, `currency`, `cloudCreditsCost`, `paygCost` | Consumption-based contracts only. |
+   | `cloudCreditsDetails` | credit-balance update, with `balance`, `cloudCreditsForPhase`, `phaseUpdatedOn` and the contract and phase dates | Consumption-based contracts only. |
+   | `subaccountUsage` | subaccount, service, metric and period (`periodStartDate`/`periodEndDate`, `YYYYMMDD`) | One API call per subaccount. Event time is the period start (UTC), so daily usage charts on the right day. |
+   | `monthlyDirectoryUsage` | as `monthlyUsage`, for one directory | Needs a directory key (step 4 above). With a global-account key it is skipped with a `Directory_Admin` log line. |
+
+Every poll rewrites the same months (or days), so in searches use `latest()` per key, **never `sum()` across polls**.
 
 ### B. Cloud ALM analytics
 
@@ -213,6 +230,17 @@ index=sap_btp sourcetype="sap:btp:uas:monthlycost"
 | stats latest(cost) as cost latest(currency) as currency by reportYearMonth subaccountName serviceName
 | sort - cost
 
+# Cloud credits: balance over the contract phase
+index=sap_btp sourcetype="sap:btp:uas:cloudcredits"
+| stats latest(balance) as balance latest(cloudCreditsForPhase) as credits latest(currency) as currency
+        by phaseStartDate phaseEndDate phaseUpdatedOn
+| sort phaseUpdatedOn
+
+# Daily usage per subaccount (event time = the day)
+index=sap_btp sourcetype="sap:btp:uas:subaccountusage"
+| dedup periodStartDate subaccountId serviceId metricName
+| timechart span=1d sum(usage) by subaccountName
+
 # Cloud ALM: what arrived per query
 index=sap_btp sourcetype=sap:calm:analytics | stats count latest(_time) as last by calm_query calm_provider
 ```
@@ -235,7 +263,9 @@ Add-on logs: `index=_internal source=*ta_sap_btp_uas*`. Set the level on **Confi
 | `authentication/authorisation failed` (HTTP 401) | Wrong client ID or secret, or the Token URL points at the wrong identity zone. |
 | HTTP 403 | A required scope is missing on the service instance (Cloud ALM), or the wrong service plan (usage: needs `reporting-ga-admin`). Add the scope, create a new binding, update the account. |
 | `Transport error ... certificate verify failed` | A TLS-intercepting proxy or a wrong host. Certificate and hostname verification cannot be switched off. |
-| `Skipping monthlySubaccountsCost: HTTP 404` | The contract is not CPEA consumption-based. Expected; remove that endpoint from the input. |
+| `Skipping monthlySubaccountsCost: HTTP 404` or `Skipping cloudCreditsDetails: HTTP 404` | The contract is not consumption-based. Expected; remove that endpoint from the input. |
+| `Skipping monthlyDirectoryUsage: HTTP 403 ... Directory_Admin` | The account is a global-account key. Use a key created in the directory (Configure, step 4). Other reports in the same input are unaffected. |
+| `Skipping subaccountUsage for <id>` | No usage for that subaccount in the window (404), or a wrong ID. |
 | `Skipping query "<name>"` | Cloud ALM rejected the query (unknown provider, dimension or measure, or a bad version). Check the catalogue output. |
 | No events at all | Account name mismatch, input disabled, index not readable by your search role, or outbound 443 blocked. |
 | Form rejects a URL | Token, API and Reporting URLs must be `https://host[:port]` with no path, query or credentials. |
@@ -255,19 +285,21 @@ Add-on logs: `index=_internal source=*ta_sap_btp_uas*`. Set the level on **Confi
 |---|---|
 | Usage API paths and field names | **Verified against SAP's OpenAPI spec** (`APIUasReportingService.json`, Resource Consumption 1.0) |
 | Cloud ALM Analytics paths and request/response shapes | **Verified against SAP's OpenAPI spec** (`CALM_ANALYTICS.json`, 1.0.0) |
-| Client logic: token request, windows, query params, paging, error handling, URL validation, TLS and redirect refusal, no secret in errors | **Verified** by 31 unit tests against mock HTTPS servers (`tests/`), including end-to-end runs of the three built entrypoints. The mocks' provider names and values are **invented**. |
-| UCC build and AppInspect (`cloud` + `private_victoria`) | **Verified locally**: 0 failures, 0 errors |
+| Client logic: token request, windows, query params, paging, error handling, URL validation, TLS and redirect refusal, no secret in errors | **Verified** by 51 unit tests against mock HTTPS servers (`tests/`), including end-to-end runs of the three built entrypoints. The mocks' provider names and values are **invented**. |
+| The three 0.3.0 reports (`cloudCreditsDetails`, `subaccountUsage`, `monthlyDirectoryUsage`): parameters, date formats, SAP's date-range limits, credit flattening, subaccount discovery, per-report 403/404 handling, event times | **Verified against mocks only**, written from SAP's OpenAPI spec. The nested credits shape and the `DAY`/`WEEK` limits come from the spec text. |
+| UCC build and AppInspect (`cloud` + `private_victoria`) | **Verified locally** for 0.3.0: 0 failures, 0 errors |
 | Running inside a real Splunk (Splunk Cloud Victoria): credential store, forms, scheduling | **Verified** for the Cloud ALM catalogue and analytics inputs (account, OAuth token, indexing). BTP usage inputs not run. |
 | Against a real Cloud ALM tenant | **Verified**: OAuth token, 37 providers and 418 dimensions listed, health, jobs and status-event data indexed. Provider names, measures and timestamp format (`yyyyMMddHHmmss`) confirmed. Rate limits and page-size cap **not verified**. |
 | Against a real BTP usage (UAS) tenant | **Not verified** |
 | Built-in monitoring dashboard (generated by the UCC framework) | The Errors tab reported as scrolling endlessly in a browser; the underlying searches return normally. Cause not established. |
-| Whether the Usage `subaccountUsage` operation accepts client credentials | Unresolved (SAP's spec and help text disagree); not implemented |
+| Whether `subaccountUsage` accepts client credentials | The OpenAPI spec lists the client-credentials flow for every operation, this one included; SAP's help text has suggested otherwise. **Not verified live.** If SAP answers 403, that report is skipped with a log line and the others still run. |
+| Whether `monthlyDirectoryUsage` works with a directory key | **Not verified**; with a global-account key a 403 is expected |
 | Whether Cloud ALM restricts API access by source IP | **Not verified**; if so, allowlist the Splunk Cloud search-head IPs |
 | Whether Log Observer Connect can chart these fields | **Not verified** (see above) |
 
 ## Not covered
 
-- Usage `/subaccountUsage`, `/cloudCreditsDetails`, `/monthlyDirectoryUsage`, and the SAC OData endpoint.
+- The Usage SAC OData endpoint (`/odata/MonthlySubaccountCmCosts`).
 - Cost-centre attribution. No label or cost-centre field exists in the usage API responses; labels live on subaccounts
   in the BTP Accounts service, which would be a second API.
 - Cloud ALM Status Events API (`/bsm-service/v1/events`) and the raw metrics, logs and traces APIs. Only the Analytics API is used.
@@ -279,7 +311,7 @@ Add-on logs: `index=_internal source=*ta_sap_btp_uas*`. Set the level on **Confi
 python3 -m venv .venv && . .venv/bin/activate
 pip install splunk-add-on-ucc-framework splunk-appinspect
 python -m unittest discover -s tests -v     # needs openssl on PATH; no Splunk required
-VERSION=0.2.2 ./build.sh                    # build, package and AppInspect-vet (macOS: export DYLD_LIBRARY_PATH=/opt/homebrew/lib)
+VERSION=0.3.0 ./build.sh                    # build, package and AppInspect-vet (macOS: export DYLD_LIBRARY_PATH=/opt/homebrew/lib)
 ```
 
 `build.sh` writes to a temp directory, normalises file modes (some synced folders report every file as executable,
